@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Link SSO | 個人管理面板</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-hover: #0284c7;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --surface-light: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --glass: rgba(255, 255, 255, 0.85);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- Transitions --- */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Layout --- */
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo i {
+            -webkit-text-fill-color: var(--primary);
+        }
+
+        /* --- Login View --- */
+        #login-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding-bottom: 5rem;
+        }
+
+        .login-card {
+            background: var(--surface);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+        }
+
+        .qr-wrapper {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            margin: 2rem 0;
+            display: inline-block;
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .qr-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #cbd5e1;
+        }
+
+        #qr-status {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 1rem;
+        }
+
+        /* --- Dashboard View --- */
+        #dashboard-view {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .icon-blue { background: rgba(37, 99, 235, 0.1); color: #60a5fa; }
+        .icon-green { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+
+        .stat-info .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-info .value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* --- Tables --- */
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 2.5rem;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 1rem 1.5rem;
+            background: var(--surface-light);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        td {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-danger-outline {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger-outline:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-info { background: rgba(37, 99, 235, 0.1); color: #60a5fa; }
+
+        /* --- Toast Notifications --- */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            border-left: 5px solid var(--primary);
+            color: var(--text-main);
+            transform: translateX(120%);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: slideIn 0.3s forwards;
+        }
+
+        @keyframes slideIn { to { transform: translateX(0); } }
+
+        .toast-success { border-left-color: var(--success); }
+        .toast-error { border-left-color: var(--danger); }
+        .toast-warning { border-left-color: var(--warning); }
+
+        .toast-icon { font-size: 1.2rem; }
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 700; font-size: 0.9rem; }
+        .toast-message { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* --- Loading Overlays --- */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--background);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(37, 99, 235, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: auto;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* --- Mobile Tweaks --- */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            header { margin-bottom: 1.5rem; }
+            .login-card { padding: 2rem 1.5rem; }
+            td, th { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container fade-in">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-shield-halved"></i>
+                V-Link SSO 管理中心
+            </div>
+            <div id="user-info" style="display:none; align-items:center; gap:15px;">
+                <span id="display-agcode" class="badge badge-info">AGCODE: ---</span>
+                <button class="btn btn-danger-outline btn-sm" onclick="App.logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> 登出
+                </button>
+            </div>
+        </header>
+
+        <!-- 登入頁面 -->
+        <main id="login-view">
+            <div class="login-card">
+                <h1 style="font-size:1.5rem; margin-bottom:0.5rem;">驗證身分</h1>
+                <p style="color:var(--text-muted);">請使用 V-Link 簽到系統 App 掃描 QR Code</p>
+                
+                <div class="qr-wrapper" id="qr-container">
+                    <div class="qr-placeholder">
+                        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+                    </div>
+                </div>
+
+                <div id="qr-status">
+                    <i class="fa-solid fa-wifi"></i> 正在連線至驗證中心...
+                </div>
+
+            </div>
+        </main>
+
+        <!-- 管理儀表板 -->
+        <main id="dashboard-view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">已連接平台</div>
+                        <div id="count-bindings" class="value">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">
+                        <i class="fa-solid fa-history"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">登入總次數 (最近)</div>
+                        <div id="count-logs" class="value">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-link" style="color:var(--primary);"></i>
+                        已綁定平台管理
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="App.loadData()">
+                        <i class="fa-solid fa-rotate"></i> 重新整理
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>系統名稱</th>
+                                <th>登入帳號</th>
+                                <th>最後更新</th>
+                                <th style="text-align:right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bindings-body">
+                            <!-- Binding rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-clock-rotate-left" style="color:var(--warning);"></i>
+                        近 50 筆登入歷史
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table style="font-size:0.9rem;">
+                        <thead>
+                            <tr>
+                                <th style="width:200px;">時間</th>
+                                <th>活動詳情</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-body">
+                            <!-- Log rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        &copy; 2026 V-Link SSO | 安全 • 無密碼 • 中心化
+    </footer>
+
+    <script>
+        const App = {
+            // --- 設定區 (請確保與 sso_service.js 部署後的 URL 一致) ---
+            ssoUrl: 'https://script.google.com/macros/s/AKfycbwdcARr75wny_g3g45kCCF2KyclkYuSZL_gTyXNAtX1zot8f3r2lSs6U3OmdjQV4YUc7Q/exec',
+            
+            state: {
+                agcode: null,
+                polling: null
+            },
+
+            init() {
+                const savedAg = sessionStorage.getItem('sso_admin_ag');
+                if (savedAg) {
+                    this.onLoginSuccess(savedAg);
+                } else {
+                    this.initiateQRLogin();
+                }
+            },
+
+            // UI Utility: Toast Notification
+            showToast(title, message, type = 'info') {
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    container.className = 'toast-container';
+                    document.body.appendChild(container);
+                }
+
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                const iconMap = {
+                    success: 'fa-circle-check',
+                    error: 'fa-circle-xmark',
+                    warning: 'fa-triangle-exclamation',
+                    info: 'fa-circle-info'
+                };
+                const colorMap = {
+                    success: 'var(--success)',
+                    error: 'var(--danger)',
+                    warning: 'var(--warning)',
+                    info: 'var(--primary)'
+                };
+
+                toast.innerHTML = `
+                    <div class="toast-icon">
+                        <i class="fa-solid ${iconMap[type]}" style="color:${colorMap[type]}"></i>
+                    </div>
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+
+                // Auto remove
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100%)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            },
+
+            // --- 登入邏輯 ---
+            async initiateQRLogin() {
+                const container = document.getElementById('qr-container');
+                const status = document.getElementById('qr-status');
+                
+                try {
+                    const resp = await fetch(this.ssoUrl + '?action=init_session');
+                    const data = await resp.json();
+                    
+                    if (data.status === 'success') {
+                        const token = data.qrToken;
+                        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=10&data=${encodeURIComponent(this.ssoUrl + '?action=authorize&qrToken=' + token + '&system=SSO_Dashboard')}`;
+                        
+                        container.innerHTML = `<img src="${qrUrl}" alt="QR Login" style="display:block; width:200px; height:200px;">`;
+                        status.innerHTML = `<i class="fa-solid fa-mobile-screen-button"></i> 等待掃描中...`;
+                        
+                        this.startPolling(token);
+                    }
+                } catch (e) {
+                    status.innerHTML = `<span style="color:var(--danger)"><i class="fa-solid fa-circle-exclamation"></i> 同步中心連線失敗</span>`;
+                    console.error(e);
+                }
+            },
+
+            startPolling(token) {
+                if (this.state.polling) clearInterval(this.state.polling);
+                
+                this.state.polling = setInterval(async () => {
+                    try {
+                        const resp = await fetch(this.ssoUrl + '?action=poll_session&qrToken=' + token + '&system=SSO_Dashboard');
+                        // 檢查是否為 GAS 回傳的 JSON
+                        const cType = resp.headers.get("content-type");
+                        if (cType && cType.indexOf("application/json") === -1) return;
+
+                        const data = await resp.json();
+                        
+                        if (data.status === 'authorized') {
+                            clearInterval(this.state.polling);
+                            this.onLoginSuccess(data.agcode);
+                        } else if (data.status === 'unbound') {
+                            // Dashboard 不需要綁定功能，若未綁定則提示
+                            clearInterval(this.state.polling);
+                            this.showToast('身分驗證失敗', '您的 AGCODE 尚未在任何系統完成初次綁定，請先至業務系統完成預註冊。', 'warning');
+                            setTimeout(() => location.reload(), 3000);
+                        }
+                    } catch (e) {
+                        console.warn('Polling...', e);
+                    }
+                }, 3000);
+            },
+
+            onLoginSuccess(agcode) {
+                this.state.agcode = agcode;
+                sessionStorage.setItem('sso_admin_ag', agcode);
+                
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'block';
+                document.getElementById('user-info').style.display = 'flex';
+                document.getElementById('display-agcode').textContent = `AGCODE: ${agcode}`;
+                
+                this.loadData();
+            },
+
+            logout() {
+                sessionStorage.removeItem('sso_admin_ag');
+                location.reload();
+            },
+
+            // --- 數據載入 ---
+            async loadData() {
+                const loader = document.getElementById('loader');
+                loader.style.display = 'flex';
+                
+                try {
+                    const resp = await fetch(this.ssoUrl + `?action=get_user_data&agcode=${this.state.agcode}`);
+                    const data = await resp.json();
+                    
+                    if (data.status === 'success') {
+                        this.renderBindings(data.bindings);
+                        this.renderLogs(data.logs);
+                        this.showToast('更新成功', '最新數據已同步完成', 'success');
+                    }
+                } catch (e) {
+                    this.showToast('發生錯誤', '無法獲取雲端試算表數據', 'error');
+                } finally {
+                    loader.style.display = 'none';
+                }
+            },
+
+            renderBindings(bindings) {
+                const body = document.getElementById('bindings-body');
+                document.getElementById('count-bindings').textContent = bindings.length;
+                
+                if (bindings.length === 0) {
+                    body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:3rem;">尚未綁定任何平台</td></tr>`;
+                    return;
+                }
+
+                body.innerHTML = bindings.map(b => `
+                    <tr>
+                        <td>
+                            <strong style="color:var(--primary);">${b.system}</strong>
+                        </td>
+                        <td>${b.account}</td>
+                        <td style="color:var(--text-muted); font-size:0.85rem;">${new Date(b.lastUpdated).toLocaleString()}</td>
+                        <td style="text-align:right;">
+                            <button class="btn btn-danger-outline btn-sm" onclick="App.deleteBinding('${b.system}')">
+                                <i class="fa-solid fa-trash-can"></i> 解除綁定
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            renderLogs(logs) {
+                const body = document.getElementById('logs-body');
+                
+                // 剔除頻繁的 "poll_session" 雜訊，除非使用者想看
+                const filteredLogs = logs.filter(l => !l.message.includes('poll_session'));
+                
+                document.getElementById('count-logs').textContent = filteredLogs.length;
+
+                if (filteredLogs.length === 0) {
+                    body.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--text-muted); padding:2rem;">目前無重要活動記錄</td></tr>`;
+                    return;
+                }
+
+                body.innerHTML = filteredLogs.map(l => `
+                    <tr>
+                        <td style="color:var(--text-muted); white-space:nowrap;">${new Date(l.time).toLocaleString()}</td>
+                        <td>${this.formatLogMessage(l.message)}</td>
+                    </tr>
+                `).join('');
+            },
+
+            formatLogMessage(msg) {
+                // 1. 處理 V6 結構化日誌
+                if (msg.startsWith('V6 REQ ->')) {
+                    try {
+                        const actMatch = msg.match(/\[ACT\]:([^ ]+)/);
+                        const sysMatch = msg.match(/\[SYS\]:([^ ]+)/);
+                        const accMatch = msg.match(/\[ACC\]:([^ ]+)/);
+                        
+                        const action = actMatch ? actMatch[1] : 'unknown';
+                        const system = sysMatch ? sysMatch[1] : 'undefined';
+                        const account = accMatch ? accMatch[1] : 'undefined';
+
+                        const actionMap = {
+                            'get_user_data': { text: '👤 進入個人管理面板', color: 'var(--primary)' },
+                            'init_session': { text: '🔑 請求新的登入 QR Code', color: 'var(--secondary)' },
+                            'authorize': { text: '📱 完成手機端授權驗證', color: 'var(--success)' },
+                            'remove_user_binding': { text: '🗑️ 移除系統平台綁定', color: 'var(--danger)' },
+                            'poll_session': { text: '🔍 自動輪詢狀態', color: 'var(--text-muted)' }
+                        };
+
+                        const actInfo = actionMap[action] || { text: `[動作: ${action}]`, color: 'var(--text-main)' };
+                        let detail = `<span style="color:${actInfo.color}; font-weight:600;">${actInfo.text}</span>`;
+                        
+                        if (system !== 'undefined' && system !== 'default') {
+                            detail += ` <span class="badge badge-info" style="font-size:0.7rem; margin-left:5px;">${system}</span>`;
+                        }
+                        
+                        if (account !== 'undefined') {
+                            detail += ` <small style="color:var(--text-muted)">(帳號: ${account})</small>`;
+                        }
+
+                        return detail;
+                    } catch (e) {
+                        return msg; // 解析失敗回傳原始字串
+                    }
+                }
+
+                // 2. 處理舊版或手動格式
+                if (msg.includes('AUTHORIZED')) return '<span style="color:var(--success)"><i class="fa-solid fa-check-circle"></i> 成功通過驗證授權</span>';
+                if (msg.includes('DELETED')) return '<span style="color:var(--danger)"><i class="fa-solid fa-circle-minus"></i> 手動解除平台綁定</span>';
+                
+                return `<span style="color:var(--text-muted)">${msg}</span>`;
+            },
+
+            async deleteBinding(system) {
+                if (!confirm(`確定要解除「${system}」的綁定嗎？\n解除後您將無法使用 SSO 直接登入該系統。`)) return;
+                
+                const loader = document.getElementById('loader');
+                loader.style.display = 'flex';
+                
+                try {
+                    const resp = await fetch(this.ssoUrl + `?action=remove_user_binding&agcode=${this.state.agcode}&system=${system}`);
+                    const data = await resp.json();
+                    
+                    if (data.status === 'success') {
+                        this.showToast('解除成功', `已將 ${system} 伺服器綁定移除`, 'success');
+                        this.loadData(); // Reload
+                    } else {
+                        this.showToast('解除失敗', data.message, 'error');
+                    }
+                } catch (e) {
+                    this.showToast('通訊錯誤', '請確認網路連線或 API 權限', 'error');
+                } finally {
+                    loader.style.display = 'none';
+                }
+            }
+        };
+
+        // 啟動應用
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
