@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-Link SSO | 個人管理面板</title>
+    <title>V-Link SSO | 憑證中心</title>
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
@@ -377,7 +377,7 @@
         <header>
             <div class="logo">
                 <i class="fa-solid fa-shield-halved"></i>
-                V-Link SSO 管理中心
+                V-Link SSO 憑證中心
             </div>
             <div id="user-info" style="display:none; align-items:center; gap:15px;">
                 <span id="display-agcode" class="badge badge-info">AGCODE: ---</span>
@@ -391,7 +391,7 @@
         <main id="login-view">
             <div class="login-card">
                 <h1 style="font-size:1.5rem; margin-bottom:0.5rem;">驗證身分</h1>
-                <p style="color:var(--text-muted);">請使用 V-Link 簽到系統 App 掃描 QR Code</p>
+                <p style="color:var(--text-muted);">請使用 V-Link  App 掃描 QR Code</p>
                 
                 <div class="qr-wrapper" id="qr-container">
                     <div class="qr-placeholder">
@@ -406,7 +406,7 @@
             </div>
         </main>
 
-        <!-- 管理儀表板 -->
+        <!-- 憑證管理 -->
         <main id="dashboard-view">
             <div class="stats-grid">
                 <div class="stat-card">
@@ -414,7 +414,7 @@
                         <i class="fa-solid fa-network-wired"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="label">已連接平台</div>
+                        <div class="label">已授權平台</div>
                         <div id="count-bindings" class="value">0</div>
                     </div>
                 </div>
